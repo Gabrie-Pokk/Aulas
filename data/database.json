@@ -73,7 +73,7 @@
         {
           "id": "q1",
           "type": "multiple_choice",
-          "points": 15,
+          "points: 15,
           "text": "Choose the correct option to complete the conditional sentence: \"If she _______ harder for the placement test, she would have scored in the C1 band.\"",
           "options": [
             "had studied",

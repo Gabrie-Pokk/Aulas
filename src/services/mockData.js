@@ -8,37 +8,7 @@ export const SEED_USERS = [
     avatar: null,
     subjects: ['Inglês', 'Matemática'],
     createdAt: '2026-09-01T10:00:00Z',
-  },
-  {
-    id: 'user_student_maria',
-    name: 'Maria Silva',
-    email: 'maria.silva@eduproctor.com',
-    password: '123',
-    role: 'student',
-    grade: '3º Ano Médio / Nível B2',
-    avatar: null,
-    createdAt: '2026-09-02T11:00:00Z',
-  },
-  {
-    id: 'user_student_lucas',
-    name: 'Lucas Mendes',
-    email: 'lucas.mendes@eduproctor.com',
-    password: '123',
-    role: 'student',
-    grade: '2º Ano Médio / Nível B1',
-    avatar: null,
-    createdAt: '2026-09-03T14:30:00Z',
-  },
-  {
-    id: 'user_student_beatriz',
-    name: 'Beatriz Souza',
-    email: 'beatriz.souza@eduproctor.com',
-    password: '123',
-    role: 'student',
-    grade: '1º Ano Médio / Nível A2',
-    avatar: null,
-    createdAt: '2026-09-04T09:15:00Z',
-  },
+  }
 ];
 
 export const SEED_ASSIGNMENTS = [
@@ -46,7 +16,7 @@ export const SEED_ASSIGNMENTS = [
     id: 'assign_eng_01',
     title: 'Reading & Synthesis: Artificial Intelligence and Language Learning',
     subject: 'Inglês',
-    description: 'Leia o texto anexo e desenvolva uma redação (mínimo de 200 palavras) abordando o impacto das novas tecnologias no aprendizado de idiomas. Foque no uso de conectivos formais e estruturas condicionais (Second & Third Conditionals).',
+    description: 'Leia o texto anexo e desenvolva uma redação (mínimo de 200 palavras) abordando o impacto das novas tecnologias no aprendizado de idiomas. Foque no uso de conectivos formais e estruturas condicionais.',
     dueDate: '2026-10-15T23:59:00',
     assignedTo: 'all',
     createdAt: '2026-10-02T14:00:00',
@@ -80,28 +50,7 @@ export const SEED_ASSIGNMENTS = [
   }
 ];
 
-export const SEED_SUBMISSIONS = [
-  {
-    id: 'sub_01',
-    assignmentId: 'assign_eng_01',
-    studentId: 'user_student_maria',
-    studentName: 'Maria Silva',
-    studentEmail: 'maria.silva@eduproctor.com',
-    submittedAt: '2026-10-06T18:24:00',
-    textNotes: 'Olá professora Gabriela! Segue a minha redação sobre o impacto da IA nos estudos de inglês. Foquei nos conectivos e nas estruturas condicionais como solicitado.',
-    files: [
-      {
-        name: 'Maria_Silva_Redacao_Ingles.pdf',
-        size: '640 KB',
-        type: 'application/pdf',
-        url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
-      }
-    ],
-    status: 'graded',
-    grade: 9.5,
-    feedback: 'Excelente trabalho, Maria! O uso das condicionais ficou impecável e a argumentação foi muito coesa.'
-  }
-];
+export const SEED_SUBMISSIONS = [];
 
 export const SEED_EXAMS = [
   {
@@ -110,7 +59,7 @@ export const SEED_EXAMS = [
     subject: 'Inglês',
     description: 'Teste diagnóstico para mapeamento de competências linguísticas, gramática, interpretação de texto e produção escrita.',
     timeLimitMinutes: 30,
-    isReleasedFor: ['user_student_maria'],
+    isReleasedFor: [],
     isUniversalRelease: false,
     securityConfig: {
       requireFullscreen: true,
@@ -125,12 +74,7 @@ export const SEED_EXAMS = [
         type: 'multiple_choice',
         points: 15,
         text: 'Choose the correct option to complete the conditional sentence: "If she _______ harder for the placement test, she would have scored in the C1 band."',
-        options: [
-          'had studied',
-          'would study',
-          'has studied',
-          'studied'
-        ],
+        options: ['had studied', 'would study', 'has studied', 'studied'],
         correctAnswer: 0,
       },
       {

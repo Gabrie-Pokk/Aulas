@@ -32,16 +32,6 @@ const DEFAULT_DB = {
       avatar: null,
       subjects: ['Inglês', 'Matemática'],
       createdAt: '2026-09-01T10:00:00Z',
-    },
-    {
-      id: 'user_student_maria',
-      name: 'Maria Silva',
-      email: 'maria.silva@eduproctor.com',
-      password: '123',
-      role: 'student',
-      grade: '3º Ano Médio / Nível B2',
-      avatar: null,
-      createdAt: '2026-09-02T11:00:00Z',
     }
   ],
   assignments: [
@@ -141,16 +131,30 @@ const readDb = () => {
     }
     const content = fs.readFileSync(DB_FILE, 'utf-8');
     const parsed = JSON.parse(content);
-    // Assegura que a conta da Gabriela esteja sempre com as credenciais corretas
-    const profIdx = parsed.users.findIndex(u => u.role === 'teacher');
-    if (profIdx >= 0) {
-      parsed.users[profIdx].email = 'familiapokk@gmail.com';
-      parsed.users[profIdx].password = '201150Az@$#';
-      parsed.users[profIdx].name = 'Profª Gabriela Sanchez';
-      parsed.users[profIdx].avatar = null;
-    } else {
+
+    // Remove qualquer aluno antigo de teste
+    parsed.users = parsed.users.filter(u =>
+      !['user_student_maria', 'user_student_lucas', 'user_student_beatriz'].includes(u.id)
+    );
+
+    // Assegura conta da Professora
+    const profIdx = parsed.users.findIndex(u => u.email === 'familiapokk@gmail.com');
+    if (profIdx < 0) {
       parsed.users.unshift(DEFAULT_DB.users[0]);
+    } else {
+      parsed.users[profIdx].name = 'Profª Gabriela Sanchez';
+      parsed.users[profIdx].password = '201150Az@$#';
+      parsed.users[profIdx].avatar = null;
     }
+
+    // Limpa submissões e tentativas fictícias antigas
+    parsed.submissions = (parsed.submissions || []).filter(
+      s => !['user_student_maria', 'user_student_lucas', 'user_student_beatriz'].includes(s.studentId)
+    );
+    parsed.examAttempts = (parsed.examAttempts || []).filter(
+      a => !['user_student_maria', 'user_student_lucas', 'user_student_beatriz'].includes(a.studentId)
+    );
+
     return parsed;
   } catch (err) {
     console.error('Erro ao ler banco de dados:', err);
@@ -166,7 +170,8 @@ const writeDb = (data) => {
   }
 };
 
-readDb();
+// Sincroniza e salva o estado limpo
+writeDb(readDb());
 
 /* ========================================================
    ROTAS DA API REST
@@ -176,7 +181,7 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', serverTime: new Date().toISOString() });
 });
 
-// Login Unificado (Professora ou Aluno)
+// Login
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -186,7 +191,7 @@ app.post('/api/login', (req, res) => {
   const cleanEmail = email.trim().toLowerCase();
   const db = readDb();
 
-  // Login da Professora Gabriela Sanchez
+  // Professora
   if (cleanEmail === 'familiapokk@gmail.com') {
     if (password === '201150Az@$#') {
       const teacher = db.users.find(u => u.email === 'familiapokk@gmail.com') || DEFAULT_DB.users[0];
@@ -196,20 +201,20 @@ app.post('/api/login', (req, res) => {
     }
   }
 
-  // Login de Aluno
+  // Aluno
   const student = db.users.find(u => u.email.toLowerCase() === cleanEmail && u.role === 'student');
   if (student) {
-    if (!student.password || student.password === password) {
+    if (student.password === password) {
       return res.json(student);
     } else {
       return res.status(401).json({ error: 'Senha incorreta.' });
     }
   }
 
-  return res.status(404).json({ error: 'Usuário não encontrado. Se você é aluno, realize seu cadastro na aba ao lado.' });
+  return res.status(404).json({ error: 'Aluno não cadastrado. Cadastre-se na aba "Novo Aluno (Cadastro)".' });
 });
 
-// Obter todos os dados do banco
+// Dados do Banco
 app.get('/api/data', (req, res) => {
   const db = readDb();
   res.json({
@@ -221,7 +226,7 @@ app.get('/api/data', (req, res) => {
   });
 });
 
-// Cadastrar Aluno
+// Cadastro de Aluno Real
 app.post('/api/register', (req, res) => {
   const { name, email, password, grade } = req.body;
   if (!name || !email || !password) {
@@ -230,7 +235,7 @@ app.post('/api/register', (req, res) => {
 
   const cleanEmail = email.trim().toLowerCase();
   if (cleanEmail === 'familiapokk@gmail.com') {
-    return res.status(400).json({ error: 'Este e-mail pertence à conta da Professora.' });
+    return res.status(400).json({ error: 'Este e-mail pertence à Professora.' });
   }
 
   const db = readDb();
@@ -278,7 +283,7 @@ app.delete('/api/assignments/:id', (req, res) => {
   res.json({ success: true });
 });
 
-// Entregas de tarefas
+// Entregas
 app.post('/api/submissions', (req, res) => {
   const subData = req.body;
   const db = readDb();
@@ -301,7 +306,7 @@ app.post('/api/submissions', (req, res) => {
   res.status(201).json(newSub);
 });
 
-// Correção / Notas
+// Avaliação de Entrega
 app.post('/api/grades', (req, res) => {
   const { submissionId, grade, feedback } = req.body;
   const db = readDb();

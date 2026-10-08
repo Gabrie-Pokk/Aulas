@@ -20,7 +20,15 @@ const STORAGE_KEYS = {
 const getStored = (key, fallback) => {
   try {
     const val = localStorage.getItem(key);
-    return val ? JSON.parse(val) : fallback;
+    if (!val) return fallback;
+    const parsed = JSON.parse(val);
+    if (Array.isArray(parsed)) {
+      // Remove alunos e entregas de teste antigos
+      return parsed.filter(item =>
+        !['user_student_maria', 'user_student_lucas', 'user_student_beatriz'].includes(item.id || item.studentId)
+      );
+    }
+    return parsed;
   } catch {
     return fallback;
   }
@@ -28,7 +36,7 @@ const getStored = (key, fallback) => {
 
 export const DataProvider = ({ children }) => {
   const [students, setStudents] = useState(() =>
-    getStored(STORAGE_KEYS.STUDENTS, SEED_USERS.filter(u => u.role === 'student'))
+    getStored(STORAGE_KEYS.STUDENTS, [])
   );
 
   const [assignments, setAssignments] = useState(() =>
@@ -36,7 +44,7 @@ export const DataProvider = ({ children }) => {
   );
 
   const [submissions, setSubmissions] = useState(() =>
-    getStored(STORAGE_KEYS.SUBMISSIONS, SEED_SUBMISSIONS)
+    getStored(STORAGE_KEYS.SUBMISSIONS, [])
   );
 
   const [exams, setExams] = useState(() =>
@@ -44,7 +52,7 @@ export const DataProvider = ({ children }) => {
   );
 
   const [examAttempts, setExamAttempts] = useState(() =>
-    getStored(STORAGE_KEYS.EXAM_ATTEMPTS, SEED_EXAM_ATTEMPTS)
+    getStored(STORAGE_KEYS.EXAM_ATTEMPTS, [])
   );
 
   // Sincroniza periodicamente com o banco de dados do servidor (/api/data)
@@ -53,11 +61,11 @@ export const DataProvider = ({ children }) => {
       const res = await fetch('/api/data');
       if (res.ok) {
         const data = await res.json();
-        if (data.students && data.students.length > 0) setStudents(data.students);
+        setStudents(data.students || []);
         if (data.assignments && data.assignments.length > 0) setAssignments(data.assignments);
-        if (data.submissions) setSubmissions(data.submissions);
+        setSubmissions(data.submissions || []);
         if (data.exams && data.exams.length > 0) setExams(data.exams);
-        if (data.examAttempts) setExamAttempts(data.examAttempts);
+        setExamAttempts(data.examAttempts || []);
       }
     } catch {
       // Silencioso se estiver operando sem o backend ativo
