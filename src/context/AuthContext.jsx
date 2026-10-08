@@ -136,6 +136,17 @@ export const AuthProvider = ({ children }) => {
         createdAt: new Date().toISOString(),
       };
 
+      // Sincroniza com o banco de dados do servidor
+      try {
+        await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newUser),
+        });
+      } catch (err) {
+        console.warn('Erro ao sincronizar novo aluno com servidor:', err);
+      }
+
       if (isFirebaseConfigured && auth) {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         newUser.id = cred.user.uid;

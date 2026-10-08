@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   SEED_USERS,
   SEED_ASSIGNMENTS,
@@ -6,14 +6,6 @@ import {
   SEED_EXAMS,
   SEED_EXAM_ATTEMPTS
 } from '../services/mockData';
-import { isFirebaseConfigured, db } from '../services/firebase';
-import {
-  collection,
-  getDocs,
-  setDoc,
-  doc,
-  updateDoc
-} from 'firebase/firestore';
 
 const DataContext = createContext(null);
 
@@ -55,7 +47,30 @@ export const DataProvider = ({ children }) => {
     getStored(STORAGE_KEYS.EXAM_ATTEMPTS, SEED_EXAM_ATTEMPTS)
   );
 
-  // Sincroniza mudanças no LocalStorage
+  // Sincroniza periodicamente com o banco de dados do servidor (/api/data)
+  const syncWithServer = useCallback(async () => {
+    try {
+      const res = await fetch('/api/data');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.students && data.students.length > 0) setStudents(data.students);
+        if (data.assignments && data.assignments.length > 0) setAssignments(data.assignments);
+        if (data.submissions) setSubmissions(data.submissions);
+        if (data.exams && data.exams.length > 0) setExams(data.exams);
+        if (data.examAttempts) setExamAttempts(data.examAttempts);
+      }
+    } catch {
+      // Silencioso se estiver operando sem o backend ativo
+    }
+  }, []);
+
+  useEffect(() => {
+    syncWithServer();
+    const interval = setInterval(syncWithServer, 15000); // Polling leve a cada 15s para sincronizar novas entregas
+    return () => clearInterval(interval);
+  }, [syncWithServer]);
+
+  // Persistência no LocalStorage de contingência
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
   }, [students]);
@@ -76,24 +91,6 @@ export const DataProvider = ({ children }) => {
     localStorage.setItem(STORAGE_KEYS.EXAM_ATTEMPTS, JSON.stringify(examAttempts));
   }, [examAttempts]);
 
-  // Se o Firebase Firestore estiver ativo, faz leitura inicial opcional
-  useEffect(() => {
-    if (!isFirebaseConfigured || !db) return;
-
-    const syncFirebase = async () => {
-      try {
-        const examsSnap = await getDocs(collection(db, 'exams'));
-        if (!examsSnap.empty) {
-          const list = examsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-          setExams(list);
-        }
-      } catch (err) {
-        console.warn('Sincronização Firestore ignorada:', err);
-      }
-    };
-    syncFirebase();
-  }, []);
-
   /**
    * Criar nova Lição / Tarefa
    */
@@ -106,12 +103,14 @@ export const DataProvider = ({ children }) => {
 
     setAssignments(prev => [assignmentWithId, ...prev]);
 
-    if (isFirebaseConfigured && db) {
-      try {
-        await setDoc(doc(db, 'assignments', assignmentWithId.id), assignmentWithId);
-      } catch (err) {
-        console.error('Erro ao salvar tarefa no Firebase:', err);
-      }
+    try {
+      await fetch('/api/assignments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(assignmentWithId),
+      });
+    } catch (err) {
+      console.warn('Erro ao sincronizar tarefa com servidor:', err);
     }
 
     return assignmentWithId;
@@ -120,8 +119,13 @@ export const DataProvider = ({ children }) => {
   /**
    * Excluir Lição
    */
-  const deleteAssignment = (id) => {
+  const deleteAssignment = async (id) => {
     setAssignments(prev => prev.filter(a => a.id !== id));
+    try {
+      await fetch(`/api/assignments/${id}`, { method: 'DELETE' });
+    } catch {
+      // fallback
+    }
   };
 
   /**
@@ -143,17 +147,18 @@ export const DataProvider = ({ children }) => {
     };
 
     setSubmissions(prev => {
-      // Remove envio prévio do mesmo aluno para essa lição se houver
       const filtered = prev.filter(s => !(s.assignmentId === assignmentId && s.studentId === studentId));
       return [newSub, ...filtered];
     });
 
-    if (isFirebaseConfigured && db) {
-      try {
-        await setDoc(doc(db, 'submissions', newSub.id), newSub);
-      } catch (err) {
-        console.error('Erro ao salvar entrega no Firebase:', err);
-      }
+    try {
+      await fetch('/api/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSub),
+      });
+    } catch (err) {
+      console.warn('Erro ao sincronizar entrega com servidor:', err);
     }
 
     return newSub;
@@ -178,17 +183,14 @@ export const DataProvider = ({ children }) => {
       })
     );
 
-    if (isFirebaseConfigured && db) {
-      try {
-        await updateDoc(doc(db, 'submissions', submissionId), {
-          grade: Number(grade),
-          feedback: feedback || '',
-          status: 'graded',
-          gradedAt: new Date().toISOString()
-        });
-      } catch (err) {
-        console.error('Erro ao atualizar nota no Firebase:', err);
-      }
+    try {
+      await fetch('/api/grades', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ submissionId, grade: Number(grade), feedback }),
+      });
+    } catch (err) {
+      console.warn('Erro ao sincronizar nota com servidor:', err);
     }
   };
 
@@ -206,12 +208,14 @@ export const DataProvider = ({ children }) => {
 
     setExams(prev => [examWithId, ...prev]);
 
-    if (isFirebaseConfigured && db) {
-      try {
-        await setDoc(doc(db, 'exams', examWithId.id), examWithId);
-      } catch (err) {
-        console.error('Erro ao criar prova no Firebase:', err);
-      }
+    try {
+      await fetch('/api/exams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(examWithId),
+      });
+    } catch (err) {
+      console.warn('Erro ao sincronizar prova com servidor:', err);
     }
 
     return examWithId;
@@ -221,48 +225,41 @@ export const DataProvider = ({ children }) => {
    * Liberar / Bloquear prova para um aluno específico ou universalmente
    */
   const toggleExamRelease = async (examId, studentId = null) => {
-    let updatedExam = null;
-
     setExams(prev =>
       prev.map(e => {
         if (e.id === examId) {
           if (!studentId) {
-            // Alterna liberação global para todos os alunos
             const newUniversal = !e.isUniversalRelease;
-            updatedExam = {
+            return {
               ...e,
               isUniversalRelease: newUniversal,
               isReleasedFor: newUniversal ? students.map(s => s.id) : []
             };
-            return updatedExam;
           } else {
-            // Alterna para um aluno específico
             const alreadyReleased = (e.isReleasedFor || []).includes(studentId);
             const newList = alreadyReleased
               ? (e.isReleasedFor || []).filter(id => id !== studentId)
               : [...(e.isReleasedFor || []), studentId];
 
-            updatedExam = {
+            return {
               ...e,
               isReleasedFor: newList,
               isUniversalRelease: false,
             };
-            return updatedExam;
           }
         }
         return e;
       })
     );
 
-    if (isFirebaseConfigured && db && updatedExam) {
-      try {
-        await updateDoc(doc(db, 'exams', examId), {
-          isReleasedFor: updatedExam.isReleasedFor,
-          isUniversalRelease: updatedExam.isUniversalRelease
-        });
-      } catch (err) {
-        console.error('Erro ao atualizar permissão da prova no Firebase:', err);
-      }
+    try {
+      await fetch(`/api/exams/${examId}/toggle-release`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId }),
+      });
+    } catch (err) {
+      console.warn('Erro ao sincronizar liberação de prova:', err);
     }
   };
 
@@ -280,12 +277,14 @@ export const DataProvider = ({ children }) => {
       return [attempt, ...prev];
     });
 
-    if (isFirebaseConfigured && db) {
-      try {
-        await setDoc(doc(db, 'examAttempts', attempt.id), attempt);
-      } catch (err) {
-        console.error('Erro ao salvar tentativa no Firebase:', err);
-      }
+    try {
+      await fetch('/api/exam-attempts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(attempt),
+      });
+    } catch (err) {
+      console.warn('Erro ao sincronizar tentativa de prova:', err);
     }
   };
 
@@ -303,18 +302,26 @@ export const DataProvider = ({ children }) => {
       prev.map(a => {
         if (a.id === attemptId) {
           const updatedLogs = [...(a.proctorLogs || []), fullLog];
-          // Recalcula nível de integridade se necessário
           let integrityLevel = a.integrityLevel || 'high';
           const highFlags = updatedLogs.filter(l => l.severity === 'high').length;
           if (highFlags >= 2) integrityLevel = 'low';
           else if (highFlags === 1 || updatedLogs.length >= 3) integrityLevel = 'medium';
 
-          return {
+          const updatedAttempt = {
             ...a,
             integrityLevel,
             status: integrityLevel === 'low' ? 'flagged' : a.status,
             proctorLogs: updatedLogs,
           };
+
+          // Sincroniza em background
+          fetch('/api/exam-attempts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedAttempt),
+          }).catch(() => {});
+
+          return updatedAttempt;
         }
         return a;
       })
@@ -338,6 +345,7 @@ export const DataProvider = ({ children }) => {
         toggleExamRelease,
         saveExamAttempt,
         addProctorLog,
+        syncWithServer,
       }}
     >
       {children}
