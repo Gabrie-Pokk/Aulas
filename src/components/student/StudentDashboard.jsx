@@ -219,16 +219,25 @@ export const StudentDashboard = ({ onStartExam }) => {
                   >
                     <div>
                       {/* Top Badges */}
-                      <div className="flex items-center justify-between mb-3">
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            isEnglish
-                              ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                              : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                          }`}
-                        >
-                          {assignment.subject}
-                        </span>
+                      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                        <div className="flex items-center space-x-1.5 flex-wrap">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                              isEnglish
+                                ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                                : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            }`}
+                          >
+                            {assignment.subject}
+                          </span>
+
+                          {assignment.generatedByAi && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                              <Sparkles className="w-2.5 h-2.5 mr-1 text-purple-600" />
+                              Lição Personalizada para Você
+                            </span>
+                          )}
+                        </div>
 
                         <span className="text-[11px] text-slate-500 flex items-center">
                           <Calendar className="w-3.5 h-3.5 mr-1 text-slate-400" />
@@ -240,7 +249,7 @@ export const StudentDashboard = ({ onStartExam }) => {
                         {assignment.title}
                       </h3>
 
-                      <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                      <p className="text-xs text-slate-600 leading-relaxed mb-4 whitespace-pre-line">
                         {assignment.description}
                       </p>
 

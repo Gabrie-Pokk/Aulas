@@ -394,6 +394,140 @@ app.post('/api/exam-attempts', (req, res) => {
   res.status(201).json(attempt);
 });
 
+// IA Pedagógica: Geração de Lição Personalizada para Aluno Específico
+app.post('/api/ai/generate-lesson', async (req, res) => {
+  const {
+    studentName = 'Estudante',
+    studentId,
+    subject = 'Inglês',
+    topic = '',
+    difficulty = 'Intermediário',
+    goal = 'Fixação e prática de exercícios',
+    additionalNotes = ''
+  } = req.body;
+
+  const cleanName = studentName.trim() || 'Estudante';
+  const cleanTopic = topic.trim() || (subject === 'Inglês' ? 'Gramática e Conversação' : 'Resolução e Álgebra');
+
+  // 1. Caso haja GEMINI_API_KEY configurada no servidor (ex: variáveis de ambiente no Render)
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const prompt = `Você é o assistente pedagógico de inteligência artificial da Profª Gabriela Sanchez (aulas particulares de Inglês e Matemática).
+Gere uma lição completa, altamente didática, estruturada e personalizada para o(a) aluno(a) "${cleanName}".
+
+Dados da Lição:
+- Aluno: ${cleanName}
+- Disciplina: ${subject}
+- Tópico solicitado: ${cleanTopic}
+- Nível de dificuldade: ${difficulty}
+- Objetivo pedagógico: ${goal}
+${additionalNotes ? `- Observações adicionais da professora: ${additionalNotes}` : ''}
+
+Retorne estritamente um JSON no seguinte formato:
+{
+  "title": "[Lição Personalizada: ${cleanName}] Título claro e motivador",
+  "content": "Texto completo da lição contendo:\\n🎯 OBJETIVO PEDAGÓGICO PARA ${cleanName.toUpperCase()}: ...\\n\\n📖 RESUMO TEÓRICO & PONTOS-CHAVE: ...\\n\\n📝 LISTA DE EXERCÍCIOS PRÁTICOS (4 a 5 exercícios graduais com enunciados claros): ...\\n\\n💡 CRITÉRIOS DE CORREÇÃO & DICAS DA PROFª GABRIELA SANCHEZ: ..."
+}`;
+
+      const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.7,
+            responseMimeType: "application/json"
+          }
+        })
+      });
+
+      if (aiResponse.ok) {
+        const json = await aiResponse.json();
+        const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          const parsed = JSON.parse(text);
+          return res.json({
+            title: parsed.title,
+            content: parsed.content,
+            generatedBy: 'gemini'
+          });
+        }
+      }
+    } catch (aiErr) {
+      console.warn('[AI] Falha na API Gemini, ativando motor pedagógico nativo:', aiErr.message);
+    }
+  }
+
+  // 2. Motor Pedagógico Nativo Estruturado
+  const title = `[Lição Personalizada: ${cleanName}] ${cleanTopic} (${difficulty})`;
+  const isEng = subject === 'Inglês';
+
+  const theory = isEng
+    ? `Esta lição foi especialmente elaborada para aprofundar seu domínio sobre "${cleanTopic}".
+A fluência se constrói na união de três competências fundamentais:
+1. Precisão estrutural (regras e padrões gramaticais)
+2. Aplicação contextualizada com vocabulário natural do cotidiano
+3. Produção ativa e reflexão crítica
+
+Observe os conectivos formais, tempos verbais adequados e procure ler os enunciados em voz alta para treinar pronúncia e ritmo.`
+    : `Esta lição foi especialmente planejada para consolidar seu domínio sobre "${cleanTopic}".
+Em Matemática, cada fórmula e teorema é uma ferramenta lógica:
+1. Compreenda o porquê de cada passagem algébrica antes de aplicar a fórmula.
+2. Identifique os dados fornecidos pelo enunciado e organize as variáveis.
+3. Não omita etapas de cálculo: o desenvolvimento demonstra seu raciocínio analítico.`;
+
+  const exercises = isEng
+    ? `1. Questão Conceitual:
+   Explique com suas palavras a importância de dominar "${cleanTopic}" na comunicação em inglês e dê 2 exemplos de situações do cotidiano onde este padrão é indispensável.
+
+2. Prática Estrutural & Fixação:
+   Complete as sentenças abaixo utilizando as estruturas corretas aprendidas em aula:
+   a) If ${cleanName} had more preparation time, she/he ________ (deliver) an outstanding presentation.
+   b) They have been working on the international assignment ________ last September.
+
+3. Correção de Precisão:
+   Identifique o erro gramatical em cada item e reescreva a forma corrigida com a justificativa.
+
+4. Redação Aplicada & Desafio Criativo:
+   Escreva um pequeno texto dissertativo (70 a 120 palavras) demonstrando o uso prático de "${cleanTopic}". Enfatize argumentos claros e conectores formais.`
+    : `1. Fixação de Fórmulas e Conceitos:
+   a) Enuncie a definição e propriedades fundamentais que regem "${cleanTopic}".
+   b) Destaque qual é a armadilha ou erro mais frequente cometido ao resolver questões desse tipo.
+
+2. Resolução Passo a Passo:
+   Resolva as expressões propostas desenvolvendo todas as etapas algébricas e simplificando o resultado até a forma irredutível.
+
+3. Problema Contextualizado:
+   Uma situação prática do cotidiano envolvendo ${cleanName}: formule a equação ou modelo matemático correspondente, determine o conjunto solução e interprete o resultado obtido.
+
+4. Desafio Analítico da Professora Gabriela:
+   Demonstre matematicamente se a solução encontrada é única ou se existem outras possibilidades sob diferentes condições de contorno.`;
+
+  const content = `🎯 OBJETIVO PEDAGÓGICO PARA ${cleanName.toUpperCase()}:
+${goal}
+${additionalNotes ? `\n📌 ORIENTAÇÃO ESPECIAL DA PROFª GABRIELA:\n"${additionalNotes}"\n` : ''}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📖 RESUMO TEÓRICO & PONTOS-CHAVE:
+${theory}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 LISTA DE EXERCÍCIOS PRÁTICOS:
+${exercises}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 CRITÉRIOS DE CORREÇÃO & DICAS DE ESTUDO DA PROFª GABRIELA SANCHEZ:
+1. Resolução Completa: Envie o desenvolvimento passo a passo (não apenas o resultado final).
+2. Formato de Entrega: Você pode responder na própria caixa de texto ou anexar fotos do caderno / arquivo em PDF.
+3. Prazo de Entrega: Envie dentro do prazo estipulado para que possamos discutir o feedback detalhado na próxima aula!`;
+
+  res.json({
+    title,
+    content,
+    generatedBy: 'native-curriculum'
+  });
+});
+
+
 /* ========================================================
    FRONTEND STATIC SERVING
 ======================================================== */
