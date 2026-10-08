@@ -42,7 +42,7 @@ export const TeacherDashboard = () => {
               <span>Painel de Gestão Docente & Proctoring</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-              Olá, {currentUser?.name || 'Professor'}!
+              Olá, {currentUser?.name || 'Profª Gabriela Sanchez'}!
             </h1>
             <p className="text-xs sm:text-sm text-indigo-100/80 max-w-xl">
               Gerencie suas turmas particulares de Inglês e Matemática, envie tarefas com anexos, configure testes de nivelamento e audite ocorrências anti-cola em tempo real.

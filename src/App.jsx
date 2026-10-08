@@ -77,7 +77,7 @@ const MainLayout = () => {
                   className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2"
                 >
                   <GraduationCap className="w-4 h-4" />
-                  <span>Acessar como Professor (Admin)</span>
+                  <span>Acessar como Profª Gabriela Sanchez</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
 

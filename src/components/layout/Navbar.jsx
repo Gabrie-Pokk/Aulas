@@ -85,13 +85,13 @@ export const Navbar = ({ onOpenAuth }) => {
                   className="w-full text-left px-3 py-2.5 hover:bg-indigo-50 flex items-center space-x-3 transition-colors"
                 >
                   <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">
-                    CH
+                    GS
                   </div>
                   <div>
                     <div className="text-xs font-bold text-slate-800 flex items-center">
-                      Prof. Carlos Henrique
+                      Profª Gabriela Sanchez
                       <span className="ml-1.5 text-[10px] px-1.5 py-0.2 bg-indigo-100 text-indigo-800 rounded font-semibold">
-                        Admin
+                        Docente
                       </span>
                     </div>
                     <div className="text-[11px] text-slate-500">Criar tarefas, liberar provas & auditoria</div>
@@ -151,7 +151,7 @@ export const Navbar = ({ onOpenAuth }) => {
                   </div>
                   <div className="text-[10px] font-medium text-slate-500 flex items-center">
                     {isTeacher ? (
-                      <span className="text-indigo-600 font-semibold">Professor (Admin)</span>
+                      <span className="text-indigo-600 font-semibold">Professora</span>
                     ) : (
                       <span className="text-emerald-600 font-semibold">Aluno</span>
                     )}

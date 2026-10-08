@@ -120,9 +120,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Cadastro de Novo Usuário (Professor ou Aluno)
+   * Cadastro de Novo Usuário (Apenas Alunos permitidos - a Profª Gabriela é a única docente)
    */
-  const register = async ({ name, email, password, role = 'student', grade = '' }) => {
+  const register = async ({ name, email, password, grade = '' }) => {
     setLoading(true);
     setAuthError(null);
     try {
@@ -130,12 +130,9 @@ export const AuthProvider = ({ children }) => {
         id: 'usr_' + Date.now(),
         name,
         email,
-        role, // 'teacher' ou 'student'
-        grade: role === 'student' ? (grade || 'Ensino Médio') : undefined,
-        subjects: role === 'teacher' ? ['Inglês', 'Matemática'] : undefined,
-        avatar: role === 'teacher'
-          ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-          : 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+        role: 'student', // Sempre aluno
+        grade: grade || 'Ensino Médio',
+        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
         createdAt: new Date().toISOString(),
       };
 

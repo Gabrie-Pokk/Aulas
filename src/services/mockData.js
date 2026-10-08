@@ -1,10 +1,10 @@
 export const SEED_USERS = [
   {
-    id: 'user_prof_carlos',
-    name: 'Prof. Carlos Henrique',
-    email: 'carlos.professor@eduproctor.com',
+    id: 'user_prof_gabriela',
+    name: 'Profª Gabriela Sanchez',
+    email: 'gabriela.sanchez@eduproctor.com',
     role: 'teacher',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
     subjects: ['Inglês', 'Matemática'],
     createdAt: '2026-09-01T10:00:00Z',
   },
@@ -109,7 +109,7 @@ export const SEED_SUBMISSIONS = [
     studentName: 'Maria Silva',
     studentEmail: 'maria.silva@eduproctor.com',
     submittedAt: '2026-10-06T18:24:00',
-    textNotes: 'Olá professor Carlos! Segue a minha redação sobre o impacto da IA nos estudos de inglês. Foquei nos conectivos e nas estruturas condicionais como solicitado.',
+    textNotes: 'Olá professora Gabriela! Segue a minha redação sobre o impacto da IA nos estudos de inglês. Foquei nos conectivos e nas estruturas condicionais como solicitado.',
     files: [
       {
         name: 'Maria_Silva_Essay_AI_Impacts.pdf',
