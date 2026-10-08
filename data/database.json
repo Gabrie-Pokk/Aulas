@@ -3,41 +3,15 @@
     {
       "id": "user_prof_gabriela",
       "name": "Profª Gabriela Sanchez",
-      "email": "gabriela.sanchez@eduproctor.com",
+      "email": "familiapokk@gmail.com",
+      "password": "201150Az@$#",
       "role": "teacher",
-      "avatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
+      "avatar": null,
       "subjects": [
         "Inglês",
         "Matemática"
       ],
       "createdAt": "2026-09-01T10:00:00Z"
-    },
-    {
-      "id": "user_student_maria",
-      "name": "Maria Silva",
-      "email": "maria.silva@eduproctor.com",
-      "role": "student",
-      "grade": "3º Ano Médio / Nível B2",
-      "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
-      "createdAt": "2026-09-02T11:00:00Z"
-    },
-    {
-      "id": "user_student_lucas",
-      "name": "Lucas Mendes",
-      "email": "lucas.mendes@eduproctor.com",
-      "role": "student",
-      "grade": "2º Ano Médio / Nível B1",
-      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-      "createdAt": "2026-09-03T14:30:00Z"
-    },
-    {
-      "id": "user_student_beatriz",
-      "name": "Beatriz Souza",
-      "email": "beatriz.souza@eduproctor.com",
-      "role": "student",
-      "grade": "1º Ano Médio / Nível A2",
-      "avatar": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80",
-      "createdAt": "2026-09-04T09:15:00Z"
     }
   ],
   "assignments": [
@@ -45,14 +19,14 @@
       "id": "assign_eng_01",
       "title": "Reading & Synthesis: Artificial Intelligence and Language Learning",
       "subject": "Inglês",
-      "description": "Read the attached article and write an essay (minimum 250 words) discussing how AI tools influence personal study habits. Focus on conditionals (second & third conditionals) and advanced linking words.",
+      "description": "Leia o texto anexo e desenvolva uma redação (mínimo de 200 palavras) abordando o impacto das novas tecnologias no aprendizado de idiomas. Foque no uso de conectivos formais e estruturas condicionais.",
       "dueDate": "2026-10-15T23:59:00",
       "assignedTo": "all",
       "createdAt": "2026-10-02T14:00:00",
       "attachments": [
         {
           "id": "att_1",
-          "name": "AI_in_Education_Cambridge_Paper.pdf",
+          "name": "Guia_Redacao_Conectivos_Ingles.pdf",
           "size": "1.2 MB",
           "type": "application/pdf",
           "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
@@ -61,56 +35,32 @@
     },
     {
       "id": "assign_math_01",
-      "title": "Estudo de Funções Quadráticas e Otimização de Máximos e Mínimos",
+      "title": "Lista #04: Funções Quadráticas e Problemas de Otimização",
       "subject": "Matemática",
-      "description": "Resolva a lista de exercícios 04 do módulo de álgebra. Demonstre os cálculos passo a passo para o cálculo de vértices da parábola, raízes reais e interpretação gráfica em problemas econômicos.",
+      "description": "Resolva a lista de exercícios anexa. Demonstre os passos para o cálculo de vértices da parábola, raízes reais e aplicação prática em máximos e mínimos. Você pode enviar foto do seu caderno ou PDF.",
       "dueDate": "2026-10-18T23:59:00",
       "assignedTo": "all",
       "createdAt": "2026-10-04T09:30:00",
       "attachments": [
         {
           "id": "att_3",
-          "name": "Lista_Exercicios_04_Funcoes_Quadraticas.pdf",
-          "size": "2.4 MB",
+          "name": "Lista_Exercicios_04_Matematica.pdf",
+          "size": "1.8 MB",
           "type": "application/pdf",
           "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
         }
       ]
     }
   ],
-  "submissions": [
-    {
-      "id": "sub_01",
-      "assignmentId": "assign_eng_01",
-      "studentId": "user_student_maria",
-      "studentName": "Maria Silva",
-      "studentEmail": "maria.silva@eduproctor.com",
-      "submittedAt": "2026-10-06T18:24:00",
-      "textNotes": "Olá professora Gabriela! Segue a minha redação sobre o impacto da IA nos estudos de inglês. Foquei nos conectivos e nas estruturas condicionais como solicitado.",
-      "files": [
-        {
-          "name": "Maria_Silva_Essay_AI_Impacts.pdf",
-          "size": "640 KB",
-          "type": "application/pdf",
-          "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-        }
-      ],
-      "status": "graded",
-      "grade": 9.5,
-      "feedback": "Excelente trabalho, Maria! O uso do third conditional ficou impecável e a argumentação foi muito coesa."
-    }
-  ],
+  "submissions": [],
   "exams": [
     {
       "id": "exam_placement_eng_01",
-      "title": "Avaliação de Nivelamento de Inglês (CEFR A1-C1 Diagnostic)",
+      "title": "Avaliação de Nivelamento de Inglês (Diagnóstico Grammar & Writing)",
       "subject": "Inglês",
-      "description": "Teste diagnóstico abrangente para mapeamento de competências linguísticas, gramática, interpretação de texto e produção escrita.",
+      "description": "Teste diagnóstico para mapeamento de competências linguísticas, gramática, interpretação de texto e produção escrita.",
       "timeLimitMinutes": 30,
-      "isReleasedFor": [
-        "user_student_maria",
-        "user_student_beatriz"
-      ],
+      "isReleasedFor": [],
       "isUniversalRelease": false,
       "securityConfig": {
         "requireFullscreen": true,
@@ -155,24 +105,5 @@
       ]
     }
   ],
-  "examAttempts": [
-    {
-      "id": "att_exam_001",
-      "examId": "exam_placement_eng_01",
-      "studentId": "user_student_maria",
-      "studentName": "Maria Silva",
-      "startedAt": "2026-10-07T10:00:00",
-      "submittedAt": "2026-10-07T10:24:35",
-      "answers": {
-        "q1": 0,
-        "q2": 1,
-        "q5": "Dedicated tutoring provides immediate structured feedback."
-      },
-      "autoScore": 30,
-      "totalScore": 70,
-      "status": "completed",
-      "integrityLevel": "high",
-      "proctorLogs": []
-    }
-  ]
+  "examAttempts": []
 }

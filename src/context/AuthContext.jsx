@@ -15,6 +15,7 @@ const STORAGE_KEY_USER = 'eduproctor_current_user';
 const STORAGE_KEY_REGISTERED = 'eduproctor_custom_users';
 
 export const AuthProvider = ({ children }) => {
+  // Inicializa deslogado por padrão, ou restaura sessão se já logado antes
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_USER);
@@ -22,14 +23,12 @@ export const AuthProvider = ({ children }) => {
     } catch {
       // fallback
     }
-    // Usuário padrão inicial: Professor Carlos para apresentação
-    return SEED_USERS[0];
+    return null; // O site agora abre na tela de login!
   });
 
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState(null);
 
-  // Escuta mudanças de estado do Firebase Auth caso configurado
   useEffect(() => {
     if (!isFirebaseConfigured || !auth) return;
 
@@ -41,21 +40,10 @@ export const AuthProvider = ({ children }) => {
             const userSnap = await getDoc(userDocRef);
             if (userSnap.exists()) {
               const profile = { id: firebaseUser.uid, ...userSnap.data() };
-              setCurrentUser(profile);
-              localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(profile));
+              saveUserSession(profile);
               return;
             }
           }
-          // Caso não haja doc no Firestore ainda
-          const fallbackProfile = {
-            id: firebaseUser.uid,
-            name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Usuário',
-            email: firebaseUser.email,
-            role: 'student',
-            avatar: firebaseUser.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-          };
-          setCurrentUser(fallbackProfile);
-          localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(fallbackProfile));
         } catch (err) {
           console.error('[Auth] Erro ao sincronizar perfil do Firebase:', err);
         }
@@ -90,27 +78,70 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Login do Usuário
+   * Login do Usuário (Professora ou Aluno)
    */
   const login = async (email, password) => {
     setLoading(true);
     setAuthError(null);
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanPass = (password || '').trim();
+
     try {
-      if (isFirebaseConfigured && auth) {
-        const cred = await signInWithEmailAndPassword(auth, email, password);
-        return cred.user;
+      // 1. Verificação oficial da conta da Professora Gabriela Sanchez
+      if (cleanEmail === 'familiapokk@gmail.com') {
+        if (cleanPass === '201150Az@$#') {
+          const teacherProfile = {
+            id: 'user_prof_gabriela',
+            name: 'Profª Gabriela Sanchez',
+            email: 'familiapokk@gmail.com',
+            role: 'teacher',
+            subjects: ['Inglês', 'Matemática'],
+            createdAt: '2026-09-01T10:00:00Z',
+          };
+          saveUserSession(teacherProfile);
+          return teacherProfile;
+        } else {
+          throw new Error('Senha incorreta para a conta da Professora.');
+        }
       }
 
-      // Modo local / mock
+      // 2. Tenta autenticação via API do Servidor (se ativo)
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: cleanEmail, password: cleanPass }),
+        });
+
+        if (res.ok) {
+          const user = await res.json();
+          saveUserSession(user);
+          return user;
+        } else {
+          const errorData = await res.json().catch(() => ({}));
+          if (res.status === 401 || res.status === 404) {
+            throw new Error(errorData.error || 'Credenciais inválidas.');
+          }
+        }
+      } catch (apiErr) {
+        if (apiErr.message && !apiErr.message.includes('fetch')) {
+          throw apiErr;
+        }
+      }
+
+      // 3. Fallback: Usuários locais
       const allUsers = [...SEED_USERS, ...getCustomUsers()];
-      const found = allUsers.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
+      const found = allUsers.find(u => u.email.toLowerCase() === cleanEmail);
       if (found) {
-        saveUserSession(found);
-        return found;
+        if (!found.password || found.password === cleanPass) {
+          saveUserSession(found);
+          return found;
+        } else {
+          throw new Error('Senha incorreta.');
+        }
       }
 
-      // Se não encontrou, cria dinamicamente ou dá erro
-      throw new Error('E-mail ou senha incorretos. Dica: use o Acesso Rápido ou cadastre uma nova conta.');
+      throw new Error('Usuário não encontrado. Se você é aluno, realize seu cadastro na aba ao lado.');
     } catch (err) {
       setAuthError(err.message || 'Falha ao realizar login.');
       throw err;
@@ -120,47 +151,45 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Cadastro de Novo Usuário (Apenas Alunos permitidos - a Profª Gabriela é a única docente)
+   * Cadastro de Novo Aluno (Apenas estudantes permitidos)
    */
   const register = async ({ name, email, password, grade = '' }) => {
     setLoading(true);
     setAuthError(null);
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanPass = (password || '').trim();
+
     try {
+      if (cleanEmail === 'familiapokk@gmail.com') {
+        throw new Error('Este e-mail pertence à conta da Professora.');
+      }
+
       const newUser = {
-        id: 'usr_' + Date.now(),
-        name,
-        email,
-        role: 'student', // Sempre aluno
+        id: 'usr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        name: name.trim(),
+        email: cleanEmail,
+        password: cleanPass,
+        role: 'student',
         grade: grade || 'Ensino Médio',
-        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
         createdAt: new Date().toISOString(),
       };
 
-      // Sincroniza com o banco de dados do servidor
+      // Sincroniza com servidor
       try {
         await fetch('/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newUser),
         });
-      } catch (err) {
-        console.warn('Erro ao sincronizar novo aluno com servidor:', err);
+      } catch {
+        // fallback
       }
 
-      if (isFirebaseConfigured && auth) {
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        newUser.id = cred.user.uid;
-        if (db) {
-          await setDoc(doc(db, 'users', cred.user.uid), newUser);
-        }
-      } else {
-        saveCustomUser(newUser);
-      }
-
+      saveCustomUser(newUser);
       saveUserSession(newUser);
       return newUser;
     } catch (err) {
-      setAuthError(err.message || 'Falha ao registrar usuário.');
+      setAuthError(err.message || 'Falha ao cadastrar aluno.');
       throw err;
     } finally {
       setLoading(false);
@@ -174,26 +203,11 @@ export const AuthProvider = ({ children }) => {
     if (isFirebaseConfigured && auth) {
       try {
         await signOut(auth);
-      } catch (err) {
-        console.warn('Erro ao deslogar do Firebase:', err);
+      } catch {
+        // ignore
       }
     }
     saveUserSession(null);
-  };
-
-  /**
-   * Alternador rápido para testes (Professor vs Alunos)
-   */
-  const quickLogin = (type) => {
-    if (type === 'teacher') {
-      saveUserSession(SEED_USERS[0]); // Prof. Carlos
-    } else if (type === 'student_maria') {
-      saveUserSession(SEED_USERS[1]); // Maria Silva (tem prova liberada)
-    } else if (type === 'student_lucas') {
-      saveUserSession(SEED_USERS[2]); // Lucas Mendes
-    } else if (type === 'student_beatriz') {
-      saveUserSession(SEED_USERS[3]); // Beatriz Souza
-    }
   };
 
   return (
@@ -206,7 +220,6 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
-        quickLogin,
         isTeacher: currentUser?.role === 'teacher',
         isStudent: currentUser?.role === 'student',
       }}

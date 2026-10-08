@@ -112,11 +112,9 @@ export const TeacherStudentsTab = () => {
                     {/* Student Info */}
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-3">
-                        <img
-                          src={student.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                          alt={student.name}
-                          className="w-9 h-9 rounded-full object-cover ring-2 ring-slate-100"
-                        />
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                          {student.name.substring(0, 2).toUpperCase()}
+                        </div>
                         <div>
                           <div className="font-bold text-slate-900">{student.name}</div>
                           <div className="text-[11px] text-slate-500 flex items-center">
